@@ -2,48 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use Illuminate\Http\JsonResponse;
+use App\Services\CategoryService;
 
 
 class CategoryController extends Controller
 {
-    public function index()
+    private CategoryService $service;
+
+    public function __construct(CategoryService $service)
     {
-        return response()->json(Category::all());
+        $this->service = $service;
     }
 
-    public function store(StoreCategoryRequest $request)
+    public function index(): JsonResponse
     {
-        $data=$request->all();
-
-        Category::create([
-            'name'=>$data['name'],
-            'description'=>$data['description'],
-            'type'=>$data['type'],
-        ]);
-
-        return response()->json(Category::latest()->first()->get());
-
-
+        return $this->service->index();
     }
 
-    public function update(StoreCategoryRequest $request, Category $category)
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $category->name=$request['name'];
-        $category->description=$request['description'];
-        $category->type=$request['type'];
+        return $this->service->store($request->validated());
+    }
 
-        $category->save();
-
-        return response()->json($category, 201);
-
+    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
+    {
+        return $this->service->update($request->validated(), $category);
     }
 
     public function destroy(Category $category): JsonResponse
     {
-        return response()->json($category->delete());
+        return $this->service->destroy($category);
     }
 }
